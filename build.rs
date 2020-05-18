@@ -184,6 +184,8 @@ fn build() -> io::Result<()> {
         ($conf:expr, $feat:expr, $name:expr) => {
             if env::var(concat!("CARGO_FEATURE_", $feat)).is_ok() {
                 $conf.arg(concat!("--enable-", $name));
+            } else {
+                $conf.arg(concat!("--disable-", $name));
             }
         };
     }
@@ -224,34 +226,22 @@ fn build() -> io::Result<()> {
     enable!(configure, "BUILD_LIB_OPENCV", "libopencv");
 
     // configure external encoders/decoders
-    enable!(configure, "BUILD_LIB_AACPLUS", "libaacplus");
     enable!(configure, "BUILD_LIB_CELT", "libcelt");
-    enable!(configure, "BUILD_LIB_DCADEC", "libdcadec");
-    enable!(configure, "BUILD_LIB_FAAC", "libfaac");
     enable!(configure, "BUILD_LIB_FDK_AAC", "libfdk-aac");
     enable!(configure, "BUILD_LIB_GSM", "libgsm");
     enable!(configure, "BUILD_LIB_ILBC", "libilbc");
-    enable!(configure, "BUILD_LIB_VAZAAR", "libvazaar");
+    enable!(configure, "BUILD_LIB_KVAZAAR", "libkvazaar");
     enable!(configure, "BUILD_LIB_MP3LAME", "libmp3lame");
     enable!(configure, "BUILD_LIB_OPENCORE_AMRNB", "libopencore-amrnb");
     enable!(configure, "BUILD_LIB_OPENCORE_AMRWB", "libopencore-amrwb");
     enable!(configure, "BUILD_LIB_OPENH264", "libopenh264");
-    enable!(configure, "BUILD_LIB_OPENH265", "libopenh265");
     enable!(configure, "BUILD_LIB_OPENJPEG", "libopenjpeg");
     enable!(configure, "BUILD_LIB_OPUS", "libopus");
-    enable!(configure, "BUILD_LIB_SCHROEDINGER", "libschroedinger");
     enable!(configure, "BUILD_LIB_SHINE", "libshine");
     enable!(configure, "BUILD_LIB_SNAPPY", "libsnappy");
     enable!(configure, "BUILD_LIB_SPEEX", "libspeex");
-    enable!(
-        configure,
-        "BUILD_LIB_STAGEFRIGHT_H264",
-        "libstagefright-h264"
-    );
     enable!(configure, "BUILD_LIB_THEORA", "libtheora");
     enable!(configure, "BUILD_LIB_TWOLAME", "libtwolame");
-    enable!(configure, "BUILD_LIB_UTVIDEO", "libutvideo");
-    enable!(configure, "BUILD_LIB_VO_AACENC", "libvo-aacenc");
     enable!(configure, "BUILD_LIB_VO_AMRWBENC", "libvo-amrwbenc");
     enable!(configure, "BUILD_LIB_VORBIS", "libvorbis");
     enable!(configure, "BUILD_LIB_VPX", "libvpx");
@@ -259,7 +249,6 @@ fn build() -> io::Result<()> {
     enable!(configure, "BUILD_LIB_WEBP", "libwebp");
     enable!(configure, "BUILD_LIB_X264", "libx264");
     enable!(configure, "BUILD_LIB_X265", "libx265");
-    enable!(configure, "BUILD_LIB_AVS", "libavs");
     enable!(configure, "BUILD_LIB_XVID", "libxvid");
 
     // other external libraries
@@ -268,9 +257,6 @@ fn build() -> io::Result<()> {
     // configure external protocols
     enable!(configure, "BUILD_LIB_SMBCLIENT", "libsmbclient");
     enable!(configure, "BUILD_LIB_SSH", "libssh");
-
-    // configure misc build options
-    enable!(configure, "BUILD_PIC", "pic");
 
     // run ./configure
     let output = configure

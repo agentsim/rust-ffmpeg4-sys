@@ -46,7 +46,6 @@ build-license-version3 = ["build"]
 
 # misc
 build-nvenc = ["build"]
-build-pic   = ["build"]
 build-zlib  = ["build"]
 
 # ssl
@@ -63,10 +62,7 @@ build-lib-freebidi   = ["build"]
 build-lib-opencv     = ["build"]
 
 # encoders/decoders
-build-lib-aacplus          = ["build"]
 build-lib-celt             = ["build"]
-build-lib-dcadec           = ["build"]
-build-lib-faac             = ["build"]
 build-lib-fdk-aac          = ["build"]
 build-lib-gsm              = ["build"]
 build-lib-ilbc             = ["build"]
@@ -77,15 +73,11 @@ build-lib-opencore-amrwb   = ["build"]
 build-lib-openh264         = ["build"]
 build-lib-openjpeg         = ["build"]
 build-lib-opus             = ["build"]
-build-lib-schroedinger     = ["build"]
 build-lib-shine            = ["build"]
 build-lib-snappy           = ["build"]
 build-lib-speex            = ["build"]
-build-lib-stagefright-h264 = ["build"]
 build-lib-theora           = ["build"]
 build-lib-twolame          = ["build"]
-build-lib-utvideo          = ["build"]
-build-lib-vo-aacenc        = ["build"]
 build-lib-vo-amrwbenc      = ["build"]
 build-lib-vorbis           = ["build"]
 build-lib-vpx              = ["build"]
@@ -93,7 +85,6 @@ build-lib-wavpack          = ["build"]
 build-lib-webp             = ["build"]
 build-lib-x264             = ["build"]
 build-lib-x265             = ["build"]
-build-lib-avs              = ["build"]
 build-lib-xvid             = ["build"]
 
 # protocols
