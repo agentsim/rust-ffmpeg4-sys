@@ -190,13 +190,11 @@ fn build() -> io::Result<()> {
         };
     }
 
-    // macro_rules! disable {
-    //     ($conf:expr, $feat:expr, $name:expr) => (
-    //         if env::var(concat!("CARGO_FEATURE_", $feat)).is_err() {
-    //             $conf.arg(concat!("--disable-", $name));
-    //         }
-    //     )
-    // }
+    macro_rules! enable_component {
+        ($conf:expr, $comp:expr, $name:expr) => {
+            $conf.arg(concat!("--enable-", $comp, "=", $name));
+        };
+    }
 
     // the binary using ffmpeg-sys must comply with GPL
     switch(&mut configure, "BUILD_LICENSE_GPL", "gpl");
@@ -210,6 +208,97 @@ fn build() -> io::Result<()> {
     // configure building libraries based on features
     for lib in LIBRARIES.iter().filter(|lib| lib.is_feature) {
         switch(&mut configure, &lib.name.to_uppercase(), lib.name);
+    }
+
+    if env::var(concat!("CARGO_FEATURE_TINY")).is_ok() {
+        configure.arg("--disable-everything");
+        enable_component!(configure, "protocol", "file");
+        enable_component!(configure, "protocol", "pipe");
+
+        if env::var(concat!("CARGO_FEATURE_COMMON_AUDIO")).is_ok() {
+            enable_component!(configure, "demuxer", "pcm_f64be");
+            enable_component!(configure, "demuxer", "pcm_f64le");
+            enable_component!(configure, "demuxer", "pcm_f32be");
+            enable_component!(configure, "demuxer", "pcm_f32le");
+            enable_component!(configure, "demuxer", "pcm_s32be");
+            enable_component!(configure, "demuxer", "pcm_s32le");
+            enable_component!(configure, "demuxer", "pcm_s24be");
+            enable_component!(configure, "demuxer", "pcm_s24le");
+            enable_component!(configure, "demuxer", "pcm_s16be");
+            enable_component!(configure, "demuxer", "pcm_s16le");
+            enable_component!(configure, "muxer", "pcm_f64be");
+            enable_component!(configure, "muxer", "pcm_f64le");
+            enable_component!(configure, "muxer", "pcm_f32be");
+            enable_component!(configure, "muxer", "pcm_f32le");
+            enable_component!(configure, "muxer", "pcm_s32be");
+            enable_component!(configure, "muxer", "pcm_s32le");
+            enable_component!(configure, "muxer", "pcm_s24be");
+            enable_component!(configure, "muxer", "pcm_s24le");
+            enable_component!(configure, "muxer", "pcm_s16be");
+            enable_component!(configure, "muxer", "pcm_s16le");
+            enable_component!(configure, "decoder", "pcm_f32be");
+            enable_component!(configure, "decoder", "pcm_f32le");
+            enable_component!(configure, "decoder", "pcm_f64be");
+            enable_component!(configure, "decoder", "pcm_f64le");
+            enable_component!(configure, "decoder", "pcm_s16be");
+            enable_component!(configure, "decoder", "pcm_s16be_planar");
+            enable_component!(configure, "decoder", "pcm_s16le");
+            enable_component!(configure, "decoder", "pcm_s16le_planar");
+            enable_component!(configure, "decoder", "pcm_s24be");
+            enable_component!(configure, "decoder", "pcm_s24be_planar");
+            enable_component!(configure, "decoder", "pcm_s24le");
+            enable_component!(configure, "decoder", "pcm_s24le_planar");
+            enable_component!(configure, "decoder", "pcm_s32be");
+            enable_component!(configure, "decoder", "pcm_s32be_planar");
+            enable_component!(configure, "decoder", "pcm_s32le");
+            enable_component!(configure, "decoder", "pcm_s32le_planar");
+            enable_component!(configure, "encoder", "pcm_f32be");
+            enable_component!(configure, "encoder", "pcm_f32le");
+            enable_component!(configure, "encoder", "pcm_f64be");
+            enable_component!(configure, "encoder", "pcm_f64le");
+            enable_component!(configure, "encoder", "pcm_s16be");
+            enable_component!(configure, "encoder", "pcm_s16be_planar");
+            enable_component!(configure, "encoder", "pcm_s16le");
+            enable_component!(configure, "encoder", "pcm_s16le_planar");
+            enable_component!(configure, "encoder", "pcm_s24be");
+            enable_component!(configure, "encoder", "pcm_s24be_planar");
+            enable_component!(configure, "encoder", "pcm_s24le");
+            enable_component!(configure, "encoder", "pcm_s24le_planar");
+            enable_component!(configure, "encoder", "pcm_s32be");
+            enable_component!(configure, "encoder", "pcm_s32be_planar");
+            enable_component!(configure, "encoder", "pcm_s32le");
+            enable_component!(configure, "encoder", "pcm_s32le_planar");
+
+            enable_component!(configure, "demuxer", "aac");
+            enable_component!(configure, "demuxer", "aiff");
+            enable_component!(configure, "demuxer", "flac");
+            enable_component!(configure, "demuxer", "mov"); // There is no mp4 demuxer
+            enable_component!(configure, "demuxer", "mp3");
+            enable_component!(configure, "demuxer", "wav");
+            enable_component!(configure, "muxer", "aiff");
+            enable_component!(configure, "muxer", "flac");
+            enable_component!(configure, "muxer", "mp3");
+            enable_component!(configure, "muxer", "mov");
+            enable_component!(configure, "muxer", "mp4");
+            enable_component!(configure, "muxer", "wav");
+
+            enable_component!(configure, "decoder", "aac");
+            enable_component!(configure, "decoder", "aac_fixed");
+            enable_component!(configure, "decoder", "aac_latm");
+            enable_component!(configure, "decoder", "alac");
+            enable_component!(configure, "decoder", "flac");
+            enable_component!(configure, "decoder", "mp3");
+            enable_component!(configure, "encoder", "aac");
+            enable_component!(configure, "encoder", "alac");
+            enable_component!(configure, "encoder", "flac");
+            enable_component!(configure, "encoder", "libmp3lame");
+
+            enable_component!(configure, "parser", "aac");
+            enable_component!(configure, "parser", "aac_latm");
+            enable_component!(configure, "parser", "flac");
+            enable_component!(configure, "parser", "mpegaudio");
+            enable_component!(configure, "parser", "vorbis");
+        }
     }
 
     // configure external SSL libraries

@@ -31,9 +31,10 @@ pkg-config = "0.3"
 bindgen    = "^0.53"
 
 [features]
-default  = ["avcodec", "avdevice", "avfilter", "avformat", "swresample", "swscale"]
+default  = ["avcodec", "avformat", "swresample", "build", "static", "build-lib-mp3lame", "common-audio"]
 
 static = []
+tiny = []
 build  = ["static"]
 
 # docs without yasm
@@ -87,9 +88,12 @@ build-lib-x264             = ["build"]
 build-lib-x265             = ["build"]
 build-lib-xvid             = ["build"]
 
-# protocols
+# protocol libs
 build-lib-smbclient = ["build"]
 build-lib-ssh       = ["build"]
+
+# enable support common audio codec/formats (aac, alac, flac, wav, aiff, mp3)
+common-audio        = ["build", "tiny", "build-lib-mp3lame"]
 
 # components
 avcodec    = []
