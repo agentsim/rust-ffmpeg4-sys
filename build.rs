@@ -291,7 +291,6 @@ fn build() -> io::Result<()> {
             enable_component!(configure, "encoder", "aac");
             enable_component!(configure, "encoder", "alac");
             enable_component!(configure, "encoder", "flac");
-            enable_component!(configure, "encoder", "libmp3lame");
 
             enable_component!(configure, "parser", "aac");
             enable_component!(configure, "parser", "aac_latm");
@@ -342,6 +341,7 @@ fn build() -> io::Result<()> {
 
     // other external libraries
     enable!(configure, "BUILD_NVENC", "nvenc");
+    enable!(configure, "BUILD_SDL2", "sdl2");
 
     // configure external protocols
     enable!(configure, "BUILD_LIB_SMBCLIENT", "libsmbclient");

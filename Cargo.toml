@@ -31,7 +31,7 @@ pkg-config = "0.3"
 bindgen    = "^0.56"
 
 [features]
-default  = ["avcodec", "avformat", "swresample", "build", "static", "build-lib-mp3lame", "common-audio"]
+default  = ["avcodec", "avformat", "swresample", "build", "static", "common-audio"]
 
 static = []
 tiny = []
