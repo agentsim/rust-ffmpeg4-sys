@@ -31,7 +31,7 @@ pkg-config = "^0.3"
 bindgen    = "^0.59"
 
 [features]
-default  = ["avcodec", "avformat", "swresample", "build", "static", "common-audio"]
+default  = ["avcodec", "avformat", "swresample", "static"]
 
 static = []
 tiny = []
@@ -93,7 +93,7 @@ build-lib-smbclient = ["build"]
 build-lib-ssh       = ["build"]
 
 # enable support common audio codec/formats (aac, alac, flac, wav, aiff, mp3)
-common-audio        = ["build", "tiny", "build-lib-mp3lame"]
+common-audio        = ["build", "static", "tiny", "build-lib-mp3lame"]
 
 # components
 avcodec    = []
