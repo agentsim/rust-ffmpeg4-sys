@@ -1,0 +1,14 @@
+prefix=build_output
+exec_prefix=${prefix}
+libdir=build_output/lib
+includedir=build_output/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 56.31.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil user32.lib bcrypt.lib
+Libs.private: 
+Cflags: -I${includedir}
