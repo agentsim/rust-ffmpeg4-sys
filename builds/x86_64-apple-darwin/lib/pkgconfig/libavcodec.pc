@@ -5,8 +5,8 @@ includedir=build_output/include
 
 Name: libavcodec
 Description: FFmpeg codec library
-Version: 58.54.100
-Requires: libavutil >= 56.31.100
+Version: 58.134.100
+Requires: libavutil >= 56.70.100
 Requires.private: 
 Conflicts:
 Libs: -L${libdir}  -lavcodec -pthread -liconv -lm
