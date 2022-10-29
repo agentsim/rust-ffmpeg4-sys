@@ -1,0 +1,55 @@
+Package: ffmpeg-tiny
+Version: 4.4.1
+Port-Version: 22
+Depends: vcpkg-cmake-get-vars:arm64-windows, vcpkg-pkgconfig-get-modules:arm64-windows
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Abi: 9d71491a3bac7ab791fc2432fd90414fd03477e60e9f95fb4e2f41cd05c31f43
+Description: a library to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created.
+    FFmpeg is the leading multimedia framework, able to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created. It supports the most obscure ancient formats up to the cutting edge. No matter if they were designed by some standards committee, the community or a corporation. It is also highly portable: FFmpeg compiles, runs, and passes our testing infrastructure FATE across Linux, Mac OS X, Microsoft Windows, the BSDs, Solaris, etc. under a wide variety of build environments, machine architectures, and configurations.
+Type: Port
+Default-Features: avcodec, avdevice, avfilter, avformat, swresample, swscale
+
+Package: ffmpeg-tiny
+Feature: avcodec
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Description: Build the avcodec library
+Type: Port
+
+Package: ffmpeg-tiny
+Feature: avdevice
+Depends: ffmpeg
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Description: Build the avdevice library
+Type: Port
+
+Package: ffmpeg-tiny
+Feature: avfilter
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Description: Build the avfilter library
+Type: Port
+
+Package: ffmpeg-tiny
+Feature: avformat
+Depends: ffmpeg
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Description: Build the avformat library
+Type: Port
+
+Package: ffmpeg-tiny
+Feature: swresample
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Description: Build the swresample library
+Type: Port
+
+Package: ffmpeg-tiny
+Feature: swscale
+Architecture: arm64-windows-rel
+Multi-Arch: same
+Description: Build the swscale library
+Type: Port
