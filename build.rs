@@ -530,7 +530,6 @@ fn link_to_libraries(statik: bool) {
 fn main() {
     let statik = env::var("CARGO_FEATURE_STATIC").is_ok();
     let target_triple = env::var("TARGET").unwrap();
-    let isx86 = target_triple.contains("x86");
 
     let include_paths: Vec<PathBuf> = {
         let mut ffmpeg_dir = env::current_dir().unwrap();
@@ -767,10 +766,6 @@ fn main() {
             .header(search_include(&include_paths, "libavcodec/dv_profile.h"))
             .header(search_include(&include_paths, "libavcodec/avfft.h"))
             .header(search_include(&include_paths, "libavcodec/vorbis_parser.h"));
-
-        if isx86 {
-            builder = builder.header(search_include(&include_paths, "libavcodec/vaapi.h"))
-        }
     }
 
     if env::var("CARGO_FEATURE_AVDEVICE").is_ok() {
