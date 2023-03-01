@@ -68,14 +68,11 @@ static LIBRARIES: &[Library] = &[
 ];
 
 #[derive(Debug)]
-struct IntCallbacks;
+struct Callbacks;
 
-impl ParseCallbacks for IntCallbacks {
+impl ParseCallbacks for Callbacks {
     fn int_macro(&self, name: &str, value: i64) -> Option<IntKind> {
-        if value >= i64::min_value() as i64
-            && value <= i64::max_value() as i64
-            && name.starts_with("AV_CH")
-        {
+        if value >= i64::min_value() as i64 && value <= i64::max_value() as i64 && name.starts_with("AV_CH") {
             Some(IntKind::ULongLong)
         } else if value >= i32::min_value() as i64
             && value <= i32::max_value() as i64
@@ -110,14 +107,8 @@ impl ParseCallbacks for IntCallbacks {
 }
 
 fn version() -> String {
-    let major: u8 = env::var("CARGO_PKG_VERSION_MAJOR")
-        .unwrap()
-        .parse()
-        .unwrap();
-    let minor: u8 = env::var("CARGO_PKG_VERSION_MINOR")
-        .unwrap()
-        .parse()
-        .unwrap();
+    let major: u8 = env::var("CARGO_PKG_VERSION_MAJOR").unwrap().parse().unwrap();
+    let minor: u8 = env::var("CARGO_PKG_VERSION_MINOR").unwrap().parse().unwrap();
 
     format!("{}.{}", major, minor)
 }
@@ -348,18 +339,13 @@ fn build() -> io::Result<()> {
     enable!(configure, "BUILD_LIB_SSH", "libssh");
 
     // run ./configure
-    let output = configure
-        .output()
-        .expect(&format!("{:?} failed", configure));
+    let output = configure.output().expect(&format!("{:?} failed", configure));
     if !output.status.success() {
         println!("configure: {}", String::from_utf8_lossy(&output.stdout));
 
         return Err(io::Error::new(
             io::ErrorKind::Other,
-            format!(
-                "configure failed {}",
-                String::from_utf8_lossy(&output.stderr)
-            ),
+            format!("configure failed {}", String::from_utf8_lossy(&output.stderr)),
         ));
     }
 
@@ -381,10 +367,7 @@ fn build() -> io::Result<()> {
     Ok(())
 }
 
-fn check_features(
-    include_paths: Vec<PathBuf>,
-    infos: &Vec<(&'static str, Option<&'static str>, &'static str)>,
-) {
+fn check_features(include_paths: Vec<PathBuf>, infos: &Vec<(&'static str, Option<&'static str>, &'static str)>) {
     let mut includes_code = String::new();
     let mut main_code = String::new();
 
@@ -412,16 +395,11 @@ fn check_features(
             var = var
         ));
 
-        main_code.push_str(&format!(
-            r#"printf("[{var}]%d%d\n", {var}, {var}_is_defined);"#,
-            var = var
-        ));
+        main_code.push_str(&format!(r#"printf("[{var}]%d%d\n", {var}, {var}_is_defined);"#, var = var));
     }
 
     let version_check_info = [("avutil", 56, 60, 0, 80)];
-    for &(lib, begin_version_major, end_version_major, begin_version_minor, end_version_minor) in
-        version_check_info.iter()
-    {
+    for &(lib, begin_version_major, end_version_major, begin_version_minor, end_version_minor) in version_check_info.iter() {
         for version_major in begin_version_major..end_version_major {
             for version_minor in begin_version_minor..end_version_minor {
                 main_code.push_str(&format!(
@@ -499,17 +477,12 @@ fn check_features(
         // Also find out if defined or not (useful for cases where only the definition of a macro
         // can be used as distinction)
         if &stdout[pos + 1..pos + 2] == "1" {
-            println!(
-                r#"cargo:rustc-cfg=feature="{}_is_defined""#,
-                var.to_lowercase()
-            );
+            println!(r#"cargo:rustc-cfg=feature="{}_is_defined""#, var.to_lowercase());
             println!(r#"cargo:{}_is_defined=true"#, var.to_lowercase());
         }
     }
 
-    for &(lib, begin_version_major, end_version_major, begin_version_minor, end_version_minor) in
-        version_check_info.iter()
-    {
+    for &(lib, begin_version_major, end_version_major, begin_version_minor, end_version_minor) in version_check_info.iter() {
         for version_major in begin_version_major..end_version_major {
             for version_minor in begin_version_minor..end_version_minor {
                 let search_str = format!(
@@ -518,16 +491,10 @@ fn check_features(
                     version_minor = version_minor,
                     lib = lib
                 );
-                let pos = stdout
-                    .find(&search_str)
-                    .expect("Variable not found in output")
-                    + search_str.len();
+                let pos = stdout.find(&search_str).expect("Variable not found in output") + search_str.len();
 
                 if &stdout[pos..pos + 1] == "1" {
-                    println!(
-                        r#"cargo:rustc-cfg=feature="{}""#,
-                        &search_str[1..(search_str.len() - 1)]
-                    );
+                    println!(r#"cargo:rustc-cfg=feature="{}""#, &search_str[1..(search_str.len() - 1)]);
                 }
             }
         }
@@ -546,6 +513,9 @@ fn search_include(include_paths: &Vec<PathBuf>, header: &str) -> String {
 
 fn link_to_libraries(statik: bool) {
     let ffmpeg_ty = if statik { "static" } else { "dylib" };
+
+    println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "mp3lame");
+
     for lib in LIBRARIES {
         let feat_is_enabled = lib.feature_name().and_then(|f| env::var(&f).ok()).is_some();
         if !lib.is_feature || feat_is_enabled {
@@ -559,69 +529,15 @@ fn link_to_libraries(statik: bool) {
 
 fn main() {
     let statik = env::var("CARGO_FEATURE_STATIC").is_ok();
+    let target_triple = env::var("TARGET").unwrap();
+    let isx86 = target_triple.contains("x86");
 
-    let include_paths: Vec<PathBuf> = if env::var("CARGO_FEATURE_BUILD").is_ok() {
-        println!(
-            "cargo:rustc-link-search=native={}",
-            search().join("lib").to_string_lossy()
-        );
-        link_to_libraries(statik);
-        if fs::metadata(&search().join("lib").join("libavutil.a")).is_err() {
-            fs::create_dir_all(&source())
-                .ok()
-                .expect("failed to create build directory");
-            build().unwrap();
-        }
-
-        // Check additional required libraries.
-        // Flags are now of the type `EXTRALIBS-avcodec`
-        {
-            let config_mak = source().join("ffbuild/config.mak");
-            let file = File::open(config_mak).unwrap();
-            let reader = BufReader::new(file);
-            let extra_libs = reader
-                .lines()
-                .filter_map(Result::ok)
-                .filter(|line| line.starts_with("EXTRALIBS"))
-                .collect::<Vec<String>>();
-            let linker_args = extra_libs
-                .iter()
-                .flat_map(|line| line.split('=').last().unwrap().split(' '))
-                .collect::<HashSet<&str>>();
-
-            let include_libs = linker_args
-                .iter()
-                .filter(|v| v.starts_with("-l"))
-                .map(|flag| &flag[2..]);
-
-            for lib in include_libs {
-                println!("cargo:rustc-link-lib={}", lib);
-            }
-        }
-
-        vec![search().join("include")]
-    }
-    // Use prebuilt library
-    else if let Ok(ffmpeg_dir) = env::var("FFMPEG_DIR") {
-        let ffmpeg_dir = PathBuf::from(ffmpeg_dir);
-        println!(
-            "cargo:rustc-link-search=native={}",
-            ffmpeg_dir.join("lib").to_string_lossy()
-        );
-        link_to_libraries(statik);
-        vec![ffmpeg_dir.join("include")]
-    }
-    // Fallback to pkg-config
-    else {
+    let include_paths: Vec<PathBuf> = {
         let mut ffmpeg_dir = env::current_dir().unwrap();
-        let target_triple = env::var("TARGET").unwrap();
 
         ffmpeg_dir.push("builds");
         ffmpeg_dir.push(target_triple);
-        println!(
-            "cargo:rustc-link-search=native={}",
-            ffmpeg_dir.join("lib").to_string_lossy()
-        );
+        println!("cargo:rustc-link-search=native={}", ffmpeg_dir.join("lib").to_string_lossy());
         link_to_libraries(statik);
         vec![ffmpeg_dir.join("include")]
     };
@@ -639,11 +555,7 @@ fn main() {
             ("libavutil/avutil.h", None, "FF_API_LLS_PRIVATE"),
             ("libavutil/avutil.h", None, "FF_API_AVFRAME_LAVC"),
             ("libavutil/avutil.h", None, "FF_API_VDPAU"),
-            (
-                "libavutil/avutil.h",
-                None,
-                "FF_API_GET_CHANNEL_LAYOUT_COMPAT",
-            ),
+            ("libavutil/avutil.h", None, "FF_API_GET_CHANNEL_LAYOUT_COMPAT"),
             ("libavutil/avutil.h", None, "FF_API_XVMC"),
             ("libavutil/avutil.h", None, "FF_API_OPT_TYPE_METADATA"),
             ("libavutil/avutil.h", None, "FF_API_DLOG"),
@@ -652,283 +564,85 @@ fn main() {
             ("libavutil/avutil.h", None, "FF_API_PKT_PTS"),
             ("libavutil/avutil.h", None, "FF_API_ERROR_FRAME"),
             ("libavutil/avutil.h", None, "FF_API_FRAME_QP"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_VIMA_DECODER",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_REQUEST_CHANNELS",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_OLD_DECODE_AUDIO",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_OLD_ENCODE_AUDIO",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_OLD_ENCODE_VIDEO",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_VIMA_DECODER"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_REQUEST_CHANNELS"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_OLD_DECODE_AUDIO"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_OLD_ENCODE_AUDIO"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_OLD_ENCODE_VIDEO"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CODEC_ID"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_AUDIO_CONVERT",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_AVCODEC_RESAMPLE",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_DEINTERLACE",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_DESTRUCT_PACKET",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AUDIO_CONVERT"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AVCODEC_RESAMPLE"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_DEINTERLACE"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_DESTRUCT_PACKET"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_GET_BUFFER"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_MISSING_SAMPLE",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_MISSING_SAMPLE"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_LOWRES"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CAP_VDPAU"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_BUFS_VDPAU"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_VOXWARE"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_SET_DIMENSIONS",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_SET_DIMENSIONS"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_DEBUG_MV"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AC_VLC"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_OLD_MSMPEG4",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_ASPECT_EXTENDED",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_THREAD_OPAQUE",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_OLD_MSMPEG4"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_ASPECT_EXTENDED"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_THREAD_OPAQUE"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CODEC_PKT"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_ARCH_ALPHA"),
-            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_XVMC"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_ERROR_RATE"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_QSCALE_TYPE",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_QSCALE_TYPE"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_MB_TYPE"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_MAX_BFRAMES",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_NEG_LINESIZES",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_MAX_BFRAMES"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_NEG_LINESIZES"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_EMU_EDGE"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_ARCH_SH4"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_ARCH_SPARC"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_UNUSED_MEMBERS",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_IDCT_XVIDMMX",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_INPUT_PRESERVED",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_NORMALIZE_AQP",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_UNUSED_MEMBERS"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_IDCT_XVIDMMX"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_INPUT_PRESERVED"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_NORMALIZE_AQP"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_GMC"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_MV0"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CODEC_NAME"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AFD"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_VISMV"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_DV_FRAME_PROFILE",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_AUDIOENC_DELAY",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_VAAPI_CONTEXT",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_AVCTX_TIMEBASE",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_DV_FRAME_PROFILE"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AUDIOENC_DELAY"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_VAAPI_CONTEXT"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AVCTX_TIMEBASE"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_MPV_OPT"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_STREAM_CODEC_TAG",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_STREAM_CODEC_TAG"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_QUANT_BIAS"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_RC_STRATEGY",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_CODED_FRAME",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_RC_STRATEGY"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CODED_FRAME"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_MOTION_EST"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_WITHOUT_PREFIX",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_CONVERGENCE_DURATION",
-            ),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_PRIVATE_OPT",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_WITHOUT_PREFIX"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CONVERGENCE_DURATION"),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_PRIVATE_OPT"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_CODER_TYPE"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_RTP_CALLBACK",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_RTP_CALLBACK"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_STAT_BITS"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_VBV_DELAY"),
-            (
-                "libavcodec/avcodec.h",
-                Some("avcodec"),
-                "FF_API_SIDEDATA_ONLY_PKT",
-            ),
+            ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_SIDEDATA_ONLY_PKT"),
             ("libavcodec/avcodec.h", Some("avcodec"), "FF_API_AVPICTURE"),
-            (
-                "libavformat/avformat.h",
-                Some("avformat"),
-                "FF_API_LAVF_BITEXACT",
-            ),
-            (
-                "libavformat/avformat.h",
-                Some("avformat"),
-                "FF_API_LAVF_FRAC",
-            ),
-            (
-                "libavformat/avformat.h",
-                Some("avformat"),
-                "FF_API_URL_FEOF",
-            ),
-            (
-                "libavformat/avformat.h",
-                Some("avformat"),
-                "FF_API_PROBESIZE_32",
-            ),
-            (
-                "libavformat/avformat.h",
-                Some("avformat"),
-                "FF_API_LAVF_AVCTX",
-            ),
-            (
-                "libavformat/avformat.h",
-                Some("avformat"),
-                "FF_API_OLD_OPEN_CALLBACKS",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_AVFILTERPAD_PUBLIC",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_FOO_COUNT",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_OLD_FILTER_OPTS",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_OLD_FILTER_OPTS_ERROR",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_AVFILTER_OPEN",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_OLD_FILTER_REGISTER",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_OLD_GRAPH_PARSE",
-            ),
-            (
-                "libavfilter/avfilter.h",
-                Some("avfilter"),
-                "FF_API_NOCONST_GET_NAME",
-            ),
-            (
-                "libavresample/avresample.h",
-                Some("avresample"),
-                "FF_API_RESAMPLE_CLOSE_OPEN",
-            ),
-            (
-                "libswscale/swscale.h",
-                Some("swscale"),
-                "FF_API_SWS_CPU_CAPS",
-            ),
+            ("libavformat/avformat.h", Some("avformat"), "FF_API_LAVF_BITEXACT"),
+            ("libavformat/avformat.h", Some("avformat"), "FF_API_LAVF_FRAC"),
+            ("libavformat/avformat.h", Some("avformat"), "FF_API_URL_FEOF"),
+            ("libavformat/avformat.h", Some("avformat"), "FF_API_PROBESIZE_32"),
+            ("libavformat/avformat.h", Some("avformat"), "FF_API_LAVF_AVCTX"),
+            ("libavformat/avformat.h", Some("avformat"), "FF_API_OLD_OPEN_CALLBACKS"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_AVFILTERPAD_PUBLIC"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_FOO_COUNT"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_OLD_FILTER_OPTS"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_OLD_FILTER_OPTS_ERROR"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_AVFILTER_OPEN"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_OLD_FILTER_REGISTER"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_OLD_GRAPH_PARSE"),
+            ("libavfilter/avfilter.h", Some("avfilter"), "FF_API_NOCONST_GET_NAME"),
+            ("libavresample/avresample.h", Some("avresample"), "FF_API_RESAMPLE_CLOSE_OPEN"),
+            ("libswscale/swscale.h", Some("swscale"), "FF_API_SWS_CPU_CAPS"),
             ("libswscale/swscale.h", Some("swscale"), "FF_API_ARCH_BFIN"),
         ],
     );
-
     // For debugging purpose only.
     let tmp = std::env::temp_dir();
     let mut f = File::create(tmp.join("ffmpeg4.build")).expect("Filed to create ffmpeg4.build");
@@ -941,9 +655,7 @@ fn main() {
         write!(f, " -I {}", dir.to_string_lossy().into_owned()).expect("failed to write incdir");
     }
 
-    let clang_includes = include_paths
-        .iter()
-        .map(|include| format!("-I{}", include.to_string_lossy()));
+    let clang_includes = include_paths.iter().map(|include| format!("-I{}", include.to_string_lossy()));
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
@@ -951,11 +663,14 @@ fn main() {
     let mut builder = bindgen::Builder::default()
         .clang_args(clang_includes)
         .ctypes_prefix("libc")
-        // https://github.com/servo/rust-bindgen/issues/550
+        // https://github.com/rust-lang/rust-bindgen/issues/550
         .blocklist_type("max_align_t")
+        // Issue on aligned and packed struct. Related to:
+        // https://github.com/rust-lang/rust-bindgen/issues/1538
+        .opaque_type("__mingw_ldbl_type_t")
+        // these are never part of ffmpeg API
         .blocklist_function("_.*")
-        // Blacklist functions with u128 in signature.
-        // https://github.com/zmwangx/rust-ffmpeg-sys/issues/1
+        // Rust doesn't support long double, and bindgen can't skip it
         // https://github.com/rust-lang/rust-bindgen/issues/1549
         .blocklist_function("acoshl")
         .blocklist_function("acosl")
@@ -1041,9 +756,8 @@ fn main() {
         .rustified_enum("*")
         .prepend_enum_name(false)
         .derive_eq(true)
-        // Otherwise bindgen is confused with multiline comments
-        .generate_comments(false)
-        .parse_callbacks(Box::new(IntCallbacks));
+        .size_t_is_usize(true)
+        .parse_callbacks(Box::new(Callbacks));
 
     // The input headers we would like to generate
     // bindings for.
@@ -1052,8 +766,11 @@ fn main() {
             .header(search_include(&include_paths, "libavcodec/avcodec.h"))
             .header(search_include(&include_paths, "libavcodec/dv_profile.h"))
             .header(search_include(&include_paths, "libavcodec/avfft.h"))
-            .header(search_include(&include_paths, "libavcodec/vaapi.h"))
             .header(search_include(&include_paths, "libavcodec/vorbis_parser.h"));
+
+        if isx86 {
+            builder = builder.header(search_include(&include_paths, "libavcodec/vaapi.h"))
+        }
     }
 
     if env::var("CARGO_FEATURE_AVDEVICE").is_ok() {
@@ -1104,7 +821,7 @@ fn main() {
         .header(search_include(&include_paths, "libavutil/lfg.h"))
         .header(search_include(&include_paths, "libavutil/log.h"))
         // LZO is not "standalone" header. It's pulled as dependency of avcodec's
-        // .header(search_include(&include_paths, "libavutil/lzo.h"))
+        //.header(search_include(&include_paths, "libavutil/lzo.h"))
         .header(search_include(&include_paths, "libavutil/macros.h"))
         .header(search_include(&include_paths, "libavutil/mathematics.h"))
         .header(search_include(&include_paths, "libavutil/md5.h"))
@@ -1129,7 +846,8 @@ fn main() {
         .header(search_include(&include_paths, "libavutil/timecode.h"))
         .header(search_include(&include_paths, "libavutil/twofish.h"))
         .header(search_include(&include_paths, "libavutil/avutil.h"))
-        .header(search_include(&include_paths, "libavutil/xtea.h"));
+        .header(search_include(&include_paths, "libavutil/xtea.h"))
+        .header(search_include(&include_paths, "libavutil/hwcontext.h"));
 
     if env::var("CARGO_FEATURE_POSTPROC").is_ok() {
         builder = builder.header(search_include(&include_paths, "libpostproc/postprocess.h"));

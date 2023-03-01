@@ -1,5 +1,13 @@
 #!/bin/sh
 
+if [ -z $LAME_LOCATION ]; then
+	echo "No libmp3lame location set"
+	exit 1
+fi
+
+export CFLAGS="-I$LAME_LOCATION/include"
+export LDFLAGS="-L$LAME_LOCATION/lib"
+
 ./configure \
 --prefix=build_output \
 --enable-debug \
@@ -17,11 +25,12 @@
 --disable-avdevice \
 --disable-avfilter \
 --enable-avformat \
---disable-avresample \
 --disable-postproc \
 --enable-swresample \
 --disable-swscale \
 --disable-everything \
+--enable-libmp3lame \
+--enable-audiotoolbox \
 --enable-protocol=file \
 --enable-protocol=pipe \
 --enable-demuxer=pcm_f64be \
@@ -93,6 +102,7 @@
 --enable-encoder=aac \
 --enable-encoder=alac \
 --enable-encoder=flac \
+--enable-encoder=libmp3lame \
 --enable-parser=aac \
 --enable-parser=aac_latm \
 --enable-parser=flac \
@@ -112,7 +122,6 @@
 --disable-libgsm \
 --disable-libilbc \
 --disable-libkvazaar \
---disable-libmp3lame \
 --disable-libopencore-amrnb \
 --disable-libopencore-amrwb \
 --disable-libopenh264 \

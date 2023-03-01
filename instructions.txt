@@ -4,7 +4,10 @@ Each supported platform should have a pre-built binary + headers in builds/{rust
 
 MacOS / Linux notes:
 
-FFmpeg tag to build from: n4.4
+Build libmp3lame:
+    ./configure --prefix=/PREFIX --enable-static --disable-shared CFLAGS="-arch x86_64 -arch arm64" LDFLAGS="-arch x86_64 -arch arm64"
+    set LAME_LOCATION to the prefix
+FFmpeg tag to build from: n5.1.2
 Run ffmpeg_configure_tiny.sh in the clone ffmpeg repo.
 Copy build_output and rename it with the target triple putting it in builds/
 
