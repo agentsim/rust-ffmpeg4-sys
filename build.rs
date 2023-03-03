@@ -514,7 +514,11 @@ fn search_include(include_paths: &Vec<PathBuf>, header: &str) -> String {
 fn link_to_libraries(statik: bool) {
     let ffmpeg_ty = if statik { "static" } else { "dylib" };
 
-    println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "mp3lame");
+    if cfg!(windows) {
+        println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "libmp3lame");
+    } else {
+        println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "mp3lame");
+    }
 
     for lib in LIBRARIES {
         let feat_is_enabled = lib.feature_name().and_then(|f| env::var(&f).ok()).is_some();
