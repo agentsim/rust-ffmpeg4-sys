@@ -1,0 +1,15 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=/c/src/vcpkg/packages/ffmpeg-tiny_arm64-windows/lib
+includedir=/c/src/vcpkg/packages/ffmpeg-tiny_arm64-windows/include
+
+Name: libswscale
+Description: FFmpeg image rescaling library
+Version: 6.7.100
+Requires: libavutil >= 57.28.100
+Requires.private: 
+Conflicts:
+Libs: "-L${libdir}" -lswscale
+Libs.private: 
+Cflags: "-I${includedir}"
+
