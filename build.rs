@@ -516,6 +516,7 @@ fn link_to_libraries(statik: bool) {
 
     if cfg!(windows) {
         println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "libmp3lame-static");
+        println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "libmpghip-static");
     } else {
         println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "mp3lame");
     }
