@@ -5,11 +5,22 @@ Each supported platform should have a pre-built binary + headers in builds/{rust
 MacOS / Linux notes:
 
 Build libmp3lame:
+repo: https://github.com/gypified/libmp3lame
+macos:
     ./configure --prefix=/PREFIX --enable-static --disable-shared CFLAGS="-arch x86_64 -arch arm64" LDFLAGS="-arch x86_64 -arch arm64"
     set LAME_LOCATION to the prefix
+linux:
+    ./configure --prefix="$(pwd)/output" --enable-static --disable-shared CFLAGS="-fPIE" LDFLAGS="-fPIE" --with-pic
+
 FFmpeg tag to build from: n5.1.2
-Run ffmpeg_configure_tiny.sh in the clone ffmpeg repo.
+  Repo: https://github.com/FFmpeg/FFmpeg
+macos:
+  Run ffmpeg_configure_tiny.sh in the clone ffmpeg repo.
+linux:
+  Run ffmpeg_configure_tiny_linx.sh in the clone ffmpeg repo.
+
 Copy build_output and rename it with the target triple putting it in builds/
+Copy lib file from ${LAME_LOCATION}/lib to the lib folder in target triple
 
 ----------------
 
