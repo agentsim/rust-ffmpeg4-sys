@@ -551,6 +551,7 @@ fn link_to_libraries(statik: bool) {
         println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "libmp3lame-static");
         println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "libmpghip-static");
         println!("cargo:rustc-link-lib=bcrypt");
+        println!("cargo:rustc-link-lib=User32");
     } else {
         println!("cargo:rustc-link-lib={}={}", ffmpeg_ty, "mp3lame");
     }
